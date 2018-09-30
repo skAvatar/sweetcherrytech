@@ -1,0 +1,195 @@
+<h1>Product - Test</h1>
+<section class="insertProduct">
+    <fieldset>
+    <legend><h3><b>Crear Producto</b></h3></legend>
+    <form id="create_form">
+        <div class="input">
+            <label for="title">Nombre: </label>
+            <input type="text" id="nameProduct" name="nameProduct">
+        </div>
+
+        <div class="input">
+            <label for="content">Descripcion: </label>
+            <input type="text" id="description" name="description">
+        </div>
+
+        <div class="input">
+            <label for="title">Precio: </label>
+            <input type="number" id="price" step=".01" name="price">
+        </div>
+        <div>
+
+        <label for="avatar">Imagen Producto: </label>
+        <input type="file"
+               id="productImg" name="imageUrl"
+               accept="image/png, image/jpeg" />
+        </div>
+        <button type="submit">Crear</button>
+    </form>
+    </fieldset>
+    <fieldset>
+        <legend><h3><b>Bucar Producto Por Nombre</b></h3></legend>
+        <div class="input">
+            <label for="content">Nombre Producto: </label>
+            <input type="text" id="search" >
+        </div>
+        <button type="submit" onclick="getProducts(document.getElementById('search').value)" >Buscar</button>
+    </fieldset>
+</section>
+
+<section class="deleteProduct">
+    
+</section>
+<section class="getAllProduct">
+    <script type="text/javascript">
+    	function getProducts(nameProduct){
+            
+            let url = nameProduct != undefined
+            ? '/products?nameProduct='+nameProduct
+            : '/products';
+
+            fetch (url)
+            .then(res => res.json())
+            .then(data => {
+                let productTable = document.getElementById("product_table");                    
+                let rowSize = productTable.rows.length;
+                for (var i = 1; i < rowSize; i++) {
+                    productTable.deleteRow(1);
+                }
+
+                data.map(product => {
+                    let productTable = document.getElementById("product_table");                    
+                    let row = productTable.insertRow(productTable.rows.lenght);
+                    let cellName = row.insertCell(row.cells.lenght);
+                    cellName.innerHTML = product.nameProduct;
+
+             
+                    
+                    let cellDescription = row.insertCell(row.cells.lenght);
+                    cellDescription.innerHTML = product.description;
+
+                    let cellPrice = row.insertCell(row.cells.lenght);
+                    cellPrice.innerHTML = product.price;
+
+                    let cellImage = row.insertCell(row.cells.lenght);
+                    let elemImg = document.createElement('img');
+                    elemImg.setAttribute('src', product.imageUrl);
+                    elemImg.setAttribute('height', 200);
+                    elemImg.setAttribute('width', 200);
+                    cellImage.appendChild(elemImg);
+          
+                    let cellOptions = row.insertCell(row.cells.lenght);
+                    let elemBtnDelete = document.createElement('button');
+                    //let elemBtnPatch = document.createElement('button');
+
+                    elemBtnDelete.innerHTML = 'Borrar';
+                    elemBtnDelete.setAttribute('productId', product._id);
+                    elemBtnDelete.setAttribute('onclick', 'deleteProduct(this)');
+                    //elemBtnPatch.innerHTML = 'Editar';
+
+                    cellOptions.appendChild(elemBtnDelete);
+                    cellOptions.appendChild(elemBtnPatch);
+                });
+            });
+        }
+
+        function deleteProduct(element) {
+            let prodId = element.getAttribute('productId');
+            if (confirm('Desea Eliminar Producto?')){
+                fetch("/products/"+ prodId, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                })
+                .then(res => getProducts())
+            }
+        }        
+
+        function create(event)
+        {
+            event.preventDefault();
+            
+            let file = document.getElementById("productImg");
+            if(file.value == ""){
+                sendCreate(null);
+            } else {
+                var reader = new FileReader();
+                reader.addEventListener("load", function(e) {
+                    sendCreate(e.target.result);
+                });
+                reader.readAsDataURL(file.files[0]);
+            }
+
+        }
+
+        function sendCreate(imageBase64){
+            const formToJSON = elements => [].reduce.call(elements, (data, element) => {  
+              data[element.name] = element.value;
+              return data;
+            }, {});
+
+            let form = document.getElementById("create_form");
+            let formData = formToJSON(form);
+            formData.imageUrl = imageBase64;
+            let jsonData = JSON.stringify(formData)
+
+            fetch("/products", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(res => {
+
+                if(res.status != 200){
+                    alert("Datos Incompletos - (Nombre, Precio) son Obligatorios}");
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log(data);
+                document.getElementById("nameProduct").value = null;
+                document.getElementById("description").value = null;
+                document.getElementById("productImg").value = null;
+                document.getElementById("price").value = null;
+                getProducts();
+            })
+            .catch(error =>  console.log(error));
+        }
+
+        function readFile() {
+            if (this.files && this.files[0]) {
+                var FR = new FileReader();
+                FR.addEventListener("load", function(e) {
+                  document.getElementById("productImg").value = e.target.result;
+                  getProducts();
+                }); 
+                FR.readAsDataURL( this.files[0] );
+              }
+        }
+        document.getElementById("productImg").addEventListener("change", readFile);
+        getProducts();
+        let form = document.getElementById("create_form");
+        form.addEventListener("submit", create)
+
+    </script>
+
+    <fieldset>
+        <legend><h3><b>Lista Producto</b></h3></legend>
+        <table id="product_table" style="width:100%">
+           
+            <thead>
+                <tr>
+                    <th>Nombre Producto</th>
+                    <th>Description Producto</th>
+                    <th>Precio Producto</th>
+                    <th>Image Producto</th>
+                    <th>Options Producto</th>
+                </tr>
+            </thead>
+           
+        </table>    
+    </fieldset> 
+</section>

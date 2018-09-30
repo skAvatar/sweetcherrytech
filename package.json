@@ -1,0 +1,12 @@
+{
+	"name": "productsAPI",
+	"version": "1.0.0",
+	"description": "Test API Rest",
+	"main": "server.js",
+	"dependencies": {
+		"express": "latest",
+		"express-handlebars": "^3.0.0",
+		"express-validator": "^5.3.0",
+		"mongoose": "latest"
+	}
+}
